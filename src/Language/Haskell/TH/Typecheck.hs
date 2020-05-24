@@ -563,6 +563,7 @@ extractKind (SigT t k') = do
 extractKind (VarT v) = isZonked v >>= \case
   Nothing -> tvKind v
   Just t -> extractKind t
+extractKind (ForallT _ _ t) = extractKind t
 extractKind t = trySplitApp t >>= \case
   FamApp cn args -> conInfo cn >>= \case
     TcFam{..} -> do
