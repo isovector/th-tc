@@ -608,7 +608,7 @@ dataKind t = case splitTyConApp t of
   Nothing -> tcFail $ "dataKind " ++ show t
 
 parseTySynEqn :: MonadTc m => TySynEqn -> m ([Type], Type)
-#if  __GLASGOW_HASKELL__ >= 800
+#if  __GLASGOW_HASKELL__ >= 808
 parseTySynEqn (TySynEqn _ h rhs) = pure (reverse $ unravel h, rhs)
   where
     unravel (AppT t ts) = ts : unravel t
@@ -618,7 +618,7 @@ parseTySynEqn (TySynEqn lhs rhs) = pure (lhs, rhs)
 #endif
 
 parseTyInst :: MonadTc m => Dec -> m AxBranch
-#if  __GLASGOW_HASKELL__ >= 800
+#if  __GLASGOW_HASKELL__ >= 808
 parseTyInst (TySynInstD eqn) =
 #else
 parseTyInst (TySynInstD _ eqn) =
