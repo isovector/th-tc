@@ -609,9 +609,9 @@ dataKind t = case splitTyConApp t of
 
 parseTySynEqn :: MonadTc m => TySynEqn -> m ([Type], Type)
 #if  __GLASGOW_HASKELL__ >= 800
-parseTySynEqn (TySynEqn _ h rhs) = pure (unravel h, rhs)
+parseTySynEqn (TySynEqn _ h rhs) = pure (reverse $ unravel h, rhs)
   where
-    unravel (AppT t ts) = unravel t ++ [ts]
+    unravel (AppT t ts) = ts : unravel t
     unravel t = [t]
 #else
 parseTySynEqn (TySynEqn lhs rhs) = pure (lhs, rhs)
