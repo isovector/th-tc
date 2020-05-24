@@ -14,7 +14,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:       Language.Haskell.TH.Typecheck
-  build-depends:         base >=4.12 && <4.13
+  build-depends:         base >=4.12 && <4.14
                        , template-haskell >= 2.14
                        , th-orphans >= 0.11
                        , containers >= 0.6
