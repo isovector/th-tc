@@ -19,6 +19,7 @@ module Language.Haskell.TH.Typecheck
   , runTc
   , TV
   , freshUnifTV
+  , freshNamedUnifTV
   , HasTV(..)
   , extractKind
   , unifyTy
@@ -128,6 +129,14 @@ qLookupValueName = qLookupName False
 freshUnifTV :: MonadTc m => m TV
 freshUnifTV = do
   v <- qNewName "u"
+  tsUnifVars . at v .= Just ()
+  pure v
+
+-- | Make a fresh (unused) unificational type variable. Unification will be able
+-- to replace this type variable with a concrete type.
+freshNamedUnifTV :: MonadTc m => String -> m TV
+freshNamedUnifTV nm = do
+  v <- qNewName nm
   tsUnifVars . at v .= Just ()
   pure v
 
