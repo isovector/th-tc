@@ -1,8 +1,10 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE CPP              #-}
+{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE TemplateHaskell  #-}
+
 {-# OPTIONS_GHC -Wno-name-shadowing -Wno-orphans #-}
 
 -- | Poor man's typechecker in Template Haskell. Capable of working with type
@@ -73,7 +75,7 @@ data TcConInfo
   { conKind :: Kind
   , conRoles :: [Role]
   }
-  | TcCls 
+  | TcCls
   { clsArgKinds :: [Kind]
 {-, clsInst :: [TcInst]
   , clsSuper :: [Constr] -}
@@ -433,7 +435,7 @@ tryZonk unify v t' = isUnifTV v >>= \case
 
 unifyTyResultE
   :: MonadTc m
-  => Bool -- ^ expand type familes? 
+  => Bool -- ^ expand type familes?
   -> Type -> Type -> m UnifyResult
 unifyTyResultE expand (VarT v) t' = tryZonk (unifyTyResultE expand) v t'
 unifyTyResultE expand t (VarT v') = tryZonk (flip $ unifyTyResultE expand) v' t
@@ -615,15 +617,27 @@ dataKind t = case splitTyConApp t of
   Nothing -> tcFail $ "dataKind " ++ show t
 
 parseTySynEqn :: MonadTc m => TySynEqn -> m ([Type], Type)
+#if  __GLASGOW_HASKELL__ >= 808
+parseTySynEqn (TySynEqn _ h rhs) = pure (reverse $ unravel h, rhs)
+  where
+    unravel (AppT t ts) = ts : unravel t
+    unravel t = [t]
+#else
 parseTySynEqn (TySynEqn lhs rhs) = pure (lhs, rhs)
+#endif
 
 parseTyInst :: MonadTc m => Dec -> m AxBranch
-parseTyInst (TySynInstD _ eqn) = parseTySynEqn eqn >>= \case
-  (lhs, rhs) -> pure $ AxBranch
-    { axLhs = lhs
-    , axRhs = rhs
-    , axIncomp = []
-    }
+#if  __GLASGOW_HASKELL__ >= 808
+parseTyInst (TySynInstD eqn) =
+#else
+parseTyInst (TySynInstD _ eqn) =
+#endif
+  parseTySynEqn eqn >>= \case
+    (lhs, rhs) -> pure $ AxBranch
+      { axLhs = lhs
+      , axRhs = rhs
+      , axIncomp = []
+      }
 parseTyInst dec = tcFail $ "parseTyInst " ++ show dec
 
 checkIncomps :: MonadTc m => [([Type], Type)] -> m [AxBranch]
